@@ -420,36 +420,50 @@ function fetchWeather() {
         var dailyCodes = d.daily.weather_code;
         var h = new Date().getHours();
         var temp = Math.round(cw.temperature);
-        var sens = Math.round(d.hourly.apparent_temperature[h] !== undefined ? d.hourly.apparent_temperature[h] : temp);
-        var hum = d.hourly.relativehumidity_2m[h] !== undefined ? d.hourly.relativehumidity_2m[h] : '--';
+        var sens = Math.round(d.hourly.apparent_temperature[h] || temp);
+        var hum = d.hourly.relativehumidity_2m[h] || '--';
+        var wind = Math.round(cw.windspeed || 0);
 
         el.innerHTML = 
-          // Hoy: Icono grande y Temperatura
-          '<div style="display:-webkit-flex; display:flex; -webkit-align-items:center; align-items:center; gap:2vw; margin-bottom:1.5vh;">' +
-            '<div style="width:9vw; height:9vw; color:' + c.segOn + '">' + getLCDIcon(cw.weathercode) + '</div>' +
+          // --- HOY (Icono y Temp en una fila más baja) ---
+          '<div style="display:-webkit-flex; display:flex; -webkit-align-items:center; align-items:center; gap:1.5vw; margin-bottom:1vh;">' +
+            '<div style="width:7vw; height:7vw; color:' + c.segOn + '">' + getLCDIcon(cw.weathercode) + '</div>' +
             '<div class="temp-wrap">' +
-              '<div class="temp-ghost" style="color:' + c.segOff + '">88!</div>' +
-              '<div class="temp-real" style="color:' + c.segOn + '; text-shadow:0 0 12px ' + c.glow + '">' + temp + '<sup>°C</sup></div>' +
+              '<div class="temp-ghost" style="color:' + c.segOff + '; font-size:8vw;">88!</div>' +
+              '<div class="temp-real" style="color:' + c.segOn + '; font-size:8vw; text-shadow:0 0 10px ' + c.glow + '">' + temp + '<sup>°C</sup></div>' +
             '</div>' +
           '</div>' +
           
-          // Descripción actual
-          '<div class="w-desc" style="color:' + c.segDim + '; margin-bottom:1.5vh;">' + (WMO[cw.weathercode] || '--') + '</div>' +
+          '<div class="w-desc" style="color:' + c.segDim + '; font-size:0.9vw; margin-bottom:1.2vh; text-transform:uppercase;">' + (WMO[cw.weathercode] || '--') + '</div>' +
           
-          // Pronóstico 3 días
-          '<div style="display:-webkit-flex; display:flex; border-top:1px dashed ' + c.segOff + '; padding-top:1.2vh; margin-bottom:1.5vh; -webkit-justify-content:space-between; justify-content:space-between;">' +
+          // --- PRONÓSTICO (Iconos más pequeños) ---
+          '<div style="display:-webkit-flex; display:flex; border-top:1px dashed ' + c.segOff + '; padding:1vh 0; -webkit-justify-content:space-between; justify-content:space-between;">' +
             renderDay(1, dailyCodes[1], c) +
             renderDay(2, dailyCodes[2], c) +
             renderDay(3, dailyCodes[3], c) +
           '</div>' +
           
-          // Metadatos
-          '<div class="w-meta" style="color:' + c.label + '">FEEL <b style="color:' + c.segOn + '">' + sens + '°</b> &nbsp; HUM <b style="color:' + c.segOn + '">' + hum + '%</b></div>';
+          // --- METADATOS (Vuelve el Viento y Humedad) ---
+          '<div class="w-meta" style="color:' + c.label + '; font-size:0.95vw; line-height:1.4;">' +
+            'FEEL <b style="color:' + c.segOn + '">' + sens + '°</b> &nbsp; HUM <b style="color:' + c.segOn + '">' + hum + '%</b><br>' +
+            'WIND <b style="color:' + c.segOn + '">' + wind + ' KM/H</b>' +
+          '</div>';
           
-      } catch (e) { el.innerHTML = '<div class="msg" style="color:' + c.segDim + '">DATA ERR_</div>'; }
-    } else { el.innerHTML = '<div class="msg" style="color:' + c.segDim + '">NO CONN_</div>'; }
+      } catch (e) { el.innerHTML = '<div class="msg">ERR_DATA</div>'; }
+    } else { el.innerHTML = '<div class="msg">ERR_CONN</div>'; }
   };
   xhr.send();
+}
+
+// Ajuste pequeño en renderDay para que no ocupe tanto
+function renderDay(offset, code, colors) {
+  var date = new Date();
+  date.setDate(date.getDate() + offset);
+  var dayName = DIAS[date.getDay()];
+  return '<div style="text-align:center; width:5.5vw;">' +
+           '<div style="font-size:0.75vw; color:'+colors.label+'; margin-bottom:0.3vh;">' + dayName + '</div>' +
+           '<div style="width:3vw; height:3vw; color:'+colors.segDim+'; margin:0 auto;">' + getLCDIcon(code) + '</div>' +
+         '</div>';
 }
 
 
