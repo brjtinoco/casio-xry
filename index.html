@@ -425,47 +425,41 @@ function fetchWeather() {
         var wind = Math.round(cw.windspeed || 0);
 
         el.innerHTML = 
-          // --- HOY (Icono y Temp en una fila más baja) ---
-          '<div style="display:-webkit-flex; display:flex; -webkit-align-items:center; align-items:center; gap:1.5vw; margin-bottom:1vh;">' +
-            '<div style="width:7vw; height:7vw; color:' + c.segOn + '">' + getLCDIcon(cw.weathercode) + '</div>' +
-            '<div class="temp-wrap">' +
+          // --- BLOQUE SUPERIOR: ICONO + TEMP + FEEL/DESC (Todo en una fila) ---
+          '<div style="display:-webkit-flex; display:flex; -webkit-align-items:center; align-items:center; -webkit-justify-content:space-between; justify-content:space-between; margin-bottom:0.8vh;">' +
+            // Izquierda: Icono
+            '<div style="width:6.5vw; height:6.5vw; color:' + c.segOn + '">' + getLCDIcon(cw.weathercode) + '</div>' +
+            // Centro: Temperatura (con ghost corregido)
+            '<div class="temp-wrap" style="position:relative; display:inline-block; margin: 0 1vw;">' +
               '<div class="temp-ghost" style="color:' + c.segOff + '; font-size:8vw;">88!</div>' +
-              '<div class="temp-real" style="color:' + c.segOn + '; font-size:8vw; text-shadow:0 0 10px ' + c.glow + '">' + temp + '<sup>°C</sup></div>' +
+              '<div class="temp-real" style="color:' + c.segOn + '; font-size:8vw; position:absolute; top:0; left:0; text-shadow:0 0 10px ' + c.glow + '">' + temp + '<sup style="font-size:2.5vw; opacity:0.75;">°C</sup></div>' +
+            '</div>' +
+            // Derecha: Sensación y Descripción corta
+            '<div style="text-align:right; min-width:6vw; line-height:1.1;">' +
+              '<div style="font-size:0.65vw; color:' + c.label + '">FEEL</div>' +
+              '<div style="font-size:1.1vw; color:' + c.segOn + '; margin-bottom:0.3vh;">' + sens + '°</div>' +
+              '<div style="font-size:0.65vw; color:' + c.segDim + '; text-transform:uppercase; white-space:nowrap;">' + (WMO[cw.weathercode] || '--').split(' ')[0] + '</div>' +
             '</div>' +
           '</div>' +
           
-          '<div class="w-desc" style="color:' + c.segDim + '; font-size:0.9vw; margin-bottom:1.2vh; text-transform:uppercase;">' + (WMO[cw.weathercode] || '--') + '</div>' +
-          
-          // --- PRONÓSTICO (Iconos más pequeños) ---
-          '<div style="display:-webkit-flex; display:flex; border-top:1px dashed ' + c.segOff + '; padding:1vh 0; -webkit-justify-content:space-between; justify-content:space-between;">' +
+          // --- BLOQUE MEDIO: PRONÓSTICO 3 DÍAS (Súper compacto) ---
+          '<div style="display:-webkit-flex; display:flex; border-top:1px dashed ' + c.segOff + '; border-bottom:1px dashed ' + c.segOff + '; padding:0.6vh 0; margin-bottom:0.8vh; -webkit-justify-content:space-between; justify-content:space-between;">' +
             renderDay(1, dailyCodes[1], c) +
             renderDay(2, dailyCodes[2], c) +
             renderDay(3, dailyCodes[3], c) +
           '</div>' +
           
-          // --- METADATOS (Vuelve el Viento y Humedad) ---
-          '<div class="w-meta" style="color:' + c.label + '; font-size:0.95vw; line-height:1.4;">' +
-            'FEEL <b style="color:' + c.segOn + '">' + sens + '°</b> &nbsp; HUM <b style="color:' + c.segOn + '">' + hum + '%</b><br>' +
-            'WIND <b style="color:' + c.segOn + '">' + wind + ' KM/H</b>' +
+          // --- PIE: METADATOS (Humedad y Viento lado a lado) ---
+          '<div style="font-size:0.8vw; color:' + c.label + '; display:-webkit-flex; display:flex; -webkit-justify-content:space-between; justify-content:space-between;">' +
+            '<span>HUM <b style="color:' + c.segOn + '">' + hum + '%</b></span>' +
+            '<span>WIND <b style="color:' + c.segOn + '">' + wind + 'K/H</b></span>' +
           '</div>';
           
-      } catch (e) { el.innerHTML = '<div class="msg">ERR_DATA</div>'; }
-    } else { el.innerHTML = '<div class="msg">ERR_CONN</div>'; }
+      } catch (e) { el.innerHTML = '<div class="msg">DATA ERR_</div>'; }
+    } else { el.innerHTML = '<div class="msg">CONN ERR_</div>'; }
   };
   xhr.send();
 }
-
-// Ajuste pequeño en renderDay para que no ocupe tanto
-function renderDay(offset, code, colors) {
-  var date = new Date();
-  date.setDate(date.getDate() + offset);
-  var dayName = DIAS[date.getDay()];
-  return '<div style="text-align:center; width:5.5vw;">' +
-           '<div style="font-size:0.75vw; color:'+colors.label+'; margin-bottom:0.3vh;">' + dayName + '</div>' +
-           '<div style="width:3vw; height:3vw; color:'+colors.segDim+'; margin:0 auto;">' + getLCDIcon(code) + '</div>' +
-         '</div>';
-}
-
 
   
   /* ── AGENDA ─────────────────────────────────────────────── */
