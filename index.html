@@ -380,34 +380,80 @@
   }
 
   /* ── CLIMA ──────────────────────────────────────────────── */
-  function fetchWeather() {
-    var xhr=new XMLHttpRequest();
-    xhr.open('GET','/api/weather?lat='+LAT+'&lon='+LON,true);
-    xhr.onreadystatechange=function(){
-      if(xhr.readyState!==4) return;
-      var el=document.getElementById('weather-section');
-      var c=window._colors||THEMES.green;
-      if(xhr.status===200){
-        try{
-          var d=JSON.parse(xhr.responseText),cw=d.current_weather;
-          var h=new Date().getHours();
-          var temp=Math.round(cw.temperature);
-          var sens=Math.round(d.hourly.apparent_temperature[h]!==undefined?d.hourly.apparent_temperature[h]:temp);
-          var hum=d.hourly.relativehumidity_2m[h]!==undefined?d.hourly.relativehumidity_2m[h]:'--';
-          var wind=Math.round(cw.windspeed);
-          el.innerHTML=
-            '<div class="temp-wrap">'+
-              '<div class="temp-ghost" style="color:'+c.segOff+'">88!</div>'+
-              '<div class="temp-real" style="color:'+c.segOn+';text-shadow:0 0 12px '+c.glow+'">'+temp+'<sup>°C</sup></div>'+
-            '</div>'+
-            '<div class="w-desc" style="color:'+c.segDim+'">'+(WMO[cw.weathercode]||'--')+'</div>'+
-            '<div class="w-meta" style="color:'+c.label+'">FEEL <b style="color:'+c.segOn+'">'+sens+'°</b> &nbsp; HUM <b style="color:'+c.segOn+'">'+hum+'%</b><br>WIND <b style="color:'+c.segOn+'">'+wind+' KM/H</b></div>';
-        }catch(e){el.innerHTML='<div class="msg" style="color:'+c.segDim+'">NO DATA_</div>';}
-      }else{el.innerHTML='<div class="msg" style="color:'+c.segDim+'">NO DATA_</div>';}
-    };
-    xhr.send();
-  }
 
+/* ── ICONOS Y AYUDANTES (Pon esto fuera de fetchWeather) ── */
+function getLCDIcon(code) {
+  var s = 'stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"';
+  var icons = {
+    0: '<circle cx="12" cy="12" r="5" '+s+'/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4l1.4 1.4M2 12h2m16 0h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4" '+s+'/>', // Sol
+    1: '<path d="M12 7c-3 0-5 2-5 5s2 5 5 5h4a3 3 0 0 0 0-6h-.5A4 4 0 0 0 12 7z" '+s+'/>', // Nube
+    2: '<path d="M12 7c-3 0-5 2-5 5s2 5 5 5h4a3 3 0 0 0 0-6h-.5A4 4 0 0 0 12 7z" '+s+'/>', // Nube
+    3: '<path d="M12 7c-3 0-5 2-5 5s2 5 5 5h4a3 3 0 0 0 0-6h-.5A4 4 0 0 0 12 7z" '+s+'/>', // Nube
+    default: '<path d="M12 7c-3 0-5 2-5 5s2 5 5 5h4a3 3 0 0 0 0-6h-.5A4 4 0 0 0 12 7z" '+s+'/><path d="M8 19l-1 2m5-2l-1 2m5-2l-1 2" '+s+'/>' // Lluvia
+  };
+  return '<svg viewBox="0 0 24 24" width="100%" height="100%">' + (icons[code] || icons['default']) + '</svg>';
+}
+
+function renderDay(offset, code, colors) {
+  var date = new Date();
+  date.setDate(date.getDate() + offset);
+  var dayName = DIAS[date.getDay()];
+  return '<div style="text-align:center; width:6vw;">' +
+           '<div style="font-size:0.8vw; color:'+colors.label+'; margin-bottom:0.4vh;">' + dayName + '</div>' +
+           '<div style="width:3.5vw; height:3.5vw; color:'+colors.segDim+'; margin:0 auto;">' + getLCDIcon(code) + '</div>' +
+         '</div>';
+}
+
+/* ── FUNCIÓN FETCH REVISADA ── */
+function fetchWeather() {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', '/api/weather?lat=' + LAT + '&lon=' + LON, true);
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState !== 4) return;
+    var el = document.getElementById('weather-section');
+    var c = window._colors || THEMES.green;
+    
+    if (xhr.status === 200) {
+      try {
+        var d = JSON.parse(xhr.responseText);
+        var cw = d.current_weather;
+        var dailyCodes = d.daily.weather_code;
+        var h = new Date().getHours();
+        var temp = Math.round(cw.temperature);
+        var sens = Math.round(d.hourly.apparent_temperature[h] !== undefined ? d.hourly.apparent_temperature[h] : temp);
+        var hum = d.hourly.relativehumidity_2m[h] !== undefined ? d.hourly.relativehumidity_2m[h] : '--';
+
+        el.innerHTML = 
+          // Hoy: Icono grande y Temperatura
+          '<div style="display:-webkit-flex; display:flex; -webkit-align-items:center; align-items:center; gap:2vw; margin-bottom:1.5vh;">' +
+            '<div style="width:9vw; height:9vw; color:' + c.segOn + '">' + getLCDIcon(cw.weathercode) + '</div>' +
+            '<div class="temp-wrap">' +
+              '<div class="temp-ghost" style="color:' + c.segOff + '">88!</div>' +
+              '<div class="temp-real" style="color:' + c.segOn + '; text-shadow:0 0 12px ' + c.glow + '">' + temp + '<sup>°C</sup></div>' +
+            '</div>' +
+          '</div>' +
+          
+          // Descripción actual
+          '<div class="w-desc" style="color:' + c.segDim + '; margin-bottom:1.5vh;">' + (WMO[cw.weathercode] || '--') + '</div>' +
+          
+          // Pronóstico 3 días
+          '<div style="display:-webkit-flex; display:flex; border-top:1px dashed ' + c.segOff + '; padding-top:1.2vh; margin-bottom:1.5vh; -webkit-justify-content:space-between; justify-content:space-between;">' +
+            renderDay(1, dailyCodes[1], c) +
+            renderDay(2, dailyCodes[2], c) +
+            renderDay(3, dailyCodes[3], c) +
+          '</div>' +
+          
+          // Metadatos
+          '<div class="w-meta" style="color:' + c.label + '">FEEL <b style="color:' + c.segOn + '">' + sens + '°</b> &nbsp; HUM <b style="color:' + c.segOn + '">' + hum + '%</b></div>';
+          
+      } catch (e) { el.innerHTML = '<div class="msg" style="color:' + c.segDim + '">DATA ERR_</div>'; }
+    } else { el.innerHTML = '<div class="msg" style="color:' + c.segDim + '">NO CONN_</div>'; }
+  };
+  xhr.send();
+}
+
+
+  
   /* ── AGENDA ─────────────────────────────────────────────── */
   function fetchAgenda(){
     var xhr=new XMLHttpRequest();
@@ -476,6 +522,26 @@
   }
 
   function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  
+  
+  /* ── Iconos Weather ─────────────────────────────────────────────── */
+
+  function getLCDIcon(code) {
+  var s = 'stroke="currentColor" stroke-width="2" fill="none"';
+  // Mapeo básico de códigos Open-Meteo a dibujos LCD
+  var icons = {
+    // Despejado
+    0: '<circle cx="12" cy="12" r="5" '+s+'/><path d="M12 2v3m0 14v3M2 12h3m14 0h3m-3-7l-2 2M7 17l-2 2m14 0l-2-2M7 7L5 5" '+s+'/>',
+    // Nubes
+    1: '<path d="M12 7c-3 0-5 2-5 5s2 5 5 5h4a3 3 0 0 0 0-6h-.5A4 4 0 0 0 12 7z" '+s+'/>', 
+    2: '<path d="M12 7c-3 0-5 2-5 5s2 5 5 5h4a3 3 0 0 0 0-6h-.5A4 4 0 0 0 12 7z" '+s+'/>',
+    3: '<path d="M12 7c-3 0-5 2-5 5s2 5 5 5h4a3 3 0 0 0 0-6h-.5A4 4 0 0 0 12 7z" '+s+'/>',
+    // Lluvia / Tormenta
+    default: '<path d="M8 13v4m4-4v4m4-4v4M12 7c-3 0-5 2-5 5s2 5 5 5h4a3 3 0 0 0 0-6h-.5A4 4 0 0 0 12 7z" '+s+'/>'
+  };
+  var path = icons[code] || icons['default'];
+  return '<svg viewBox="0 0 24 24" width="100%" height="100%">' + path + '</svg>';
+}
 
   /* ── INIT ───────────────────────────────────────────────── */
   var savedTheme = localStorage.getItem('casio-theme')||'green';
