@@ -202,32 +202,29 @@
             [ MESA OFF ]
         </button>
 
+        <button onclick="controlarLuz('https://sequematic.com/trigger-custom-webhook/FD689D30C9/163740')" 
+                class="smart-btn"
+                style="background: transparent; border: 1px solid; padding: 0.8vh 1vw; font-family: 'Share Tech Mono', monospace; font-size: 0.9vw; cursor: pointer;">
+            [ ARMARIO ON ]
+        </button>
+
+        <button onclick="controlarLuz('https://sequematic.com/trigger-custom-webhook/FD689D30C9/163742')" 
+                class="smart-btn"
+                style="background: transparent; border: 1px solid; padding: 0.8vh 1vw; font-family: 'Share Tech Mono', monospace; font-size: 0.9vw; cursor: pointer;">
+            [ ARMARIO OFF ]
+        </button>
         
       </div>
       
     </div>
   </div>
    
-</div>
 
 <script>
-// Nuevo script compatible con iOS antiguo y con confirmación visual
-function controlarLuz(boton, url) {
-    if (url.includes('AQUI')) return; 
-
-    // 1. Feedback visual: cambia el texto un segundo
-    var textoOriginal = boton.innerText;
-    boton.innerText = '[ OK ]';
-    setTimeout(function() {
-        boton.innerText = textoOriginal;
-    }, 800);
-
-    // 2. Rompe-caché: le añade un número aleatorio al final del enlace
-    // Esto engaña al iPad para que piense que es un enlace nuevo y lo envíe siempre
-    var urlSinCache = url + '?rnd=' + Math.random();
-    
+function controlarLuz(url) {
+    if (url.includes('AQUI_PEGA')) return; // Evita errores si aún no has puesto el enlace
     var img = new Image();
-    img.src = urlSinCache;
+    img.src = url;
 }
 </script>
 
