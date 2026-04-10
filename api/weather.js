@@ -3,16 +3,17 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Cache-Control', 'no-store');
 
-  var lat = req.query.lat || '-34.6037';
-  var lon = req.query.lon || '-58.3816';
+  var lat = req.query.lat || '36.68033298624759';
+  var lon = req.query.lon || '-6.115668851566495';
 
   var url = 'https://api.open-meteo.com/v1/forecast' +
     '?latitude=' + lat +
     '&longitude=' + lon +
-    '&current_weather=true' +
+    '&current_weather=true'+
+    '&daily=weather_code'+
     '&hourly=apparent_temperature,relativehumidity_2m' +
-    '&timezone=America%2FArgentina%2FBuenos_Aires' +
-    '&forecast_days=1';
+    '&timezone=auto' +
+    '&forecast_days=4';
 
   try {
     var response = await fetch(url);
